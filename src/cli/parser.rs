@@ -1,12 +1,12 @@
 use anyhow::{bail, Result};
 use clap::{Parser, Subcommand};
 use nostr_sdk::Keys;
-use prediction_market_event::{information::Information, nostr_event_types::NewEvent, Event};
+use prediction_market_event::{
+    nostr_event_types::NewEvent, Event, Outcome, PayoutUnit,
+};
 use serde_json::json;
 
-use crate::cli::db;
-
-use super::Context;
+use crate::cli::{db, information_stdin_prompts, Context};
 
 #[derive(Parser)]
 pub struct Cli {
@@ -20,7 +20,10 @@ pub enum Commands {
         #[command(subcommand)]
         keys_commands: KeysCommand,
     },
-    Publish,
+    Publish {
+        #[command(subcommand)]
+        publish_commands: PublishCommands,
+    },
     Get,
 }
 
@@ -30,6 +33,15 @@ pub enum KeysCommand {
     SecretHex,
     Set { secret_key: String },
     Delete,
+}
+
+#[derive(Subcommand)]
+pub enum PublishCommands {
+    NewEvent {
+        outcome_count: Outcome,
+        units_to_payout: PayoutUnit,
+        information_type: String,
+    },
 }
 
 impl Cli {
@@ -62,17 +74,23 @@ impl Cli {
                     json!(true)
                 }
             },
-            Commands::Publish => {
-                let client = context.client().await?;
-                let success = client
-                    .publish::<NewEvent>(&Event::new_with_random_nonce(3, 5, Information::None))
-                    .await?;
+            Commands::Publish { publish_commands } => match publish_commands {
+                PublishCommands::NewEvent { outcome_count, units_to_payout, information_type } => {
+                    let information = information_stdin_prompts::prompt(&information_type, outcome_count)?;
+                    let event = Event::new_with_random_nonce(outcome_count, units_to_payout, information);
 
-                json!(success)
-            }
+                    let success = context
+                        .client()
+                        .await?
+                        .publish::<NewEvent>(&event)
+                        .await?;
+
+                    json!(success)
+                }
+            },
+
             Commands::Get => {
-                let client = context.client().await?;
-                let events = client.get::<NewEvent>(|f| f, None).await?;
+                let events = context.client().await?.get::<NewEvent>(|f| f, None).await?;
 
                 json!(events)
             }

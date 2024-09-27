@@ -9,6 +9,7 @@ use crate::Client;
 
 pub mod db;
 pub mod parser;
+pub mod information_stdin_prompts;
 
 pub struct Context {
     pub db: DB,
@@ -28,9 +29,9 @@ impl Context {
     }
 }
 
-pub async fn parse_and_run() -> Result<serde_json::Value> {
+pub async fn parse_and_handle() -> Result<serde_json::Value> {
     let context = Context::create()?;
-
     let cli = Cli::parse();
+
     cli.handle(&context).await
 }
