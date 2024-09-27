@@ -1,14 +1,8 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod client;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub use client::Client;
+pub use nostr_sdk;
+pub use prediction_market_event;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+#[cfg(feature = "cli")]
+pub mod cli;

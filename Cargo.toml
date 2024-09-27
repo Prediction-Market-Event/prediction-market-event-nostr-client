@@ -3,4 +3,23 @@ name = "prediction-market-event-nostr-client"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "cli"
+path = "src/cli/bin/main.rs"
+required-features = ["cli_bin"]
+
+[features]
+default = []
+cli = ["dep:clap", "dep:serde_json", "dep:rocksdb"]
+cli_bin = ["cli", "dep:tokio"]
+
 [dependencies]
+anyhow = "1.0.89"
+nostr-sdk = "0.35.0"
+prediction-market-event = { git = "https://github.com/Prediction-Market-Event/prediction-market-event" }
+
+# cli dependencies
+clap = { version = "4.5.18", optional = true, features = ["derive"] }
+tokio = { version = "1.40.0", optional = true }
+serde_json = { version = "1.0.128", optional = true }
+rocksdb = { version = "0.22.0", optional = true }
