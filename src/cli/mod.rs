@@ -4,19 +4,20 @@ use db::get_db;
 use parser::Cli;
 use sqlx::{Pool, Sqlite};
 
-
 use crate::Client;
 
 pub mod db;
 pub mod parser;
-pub mod information_stdin_prompts;
+pub mod stdin_prompts;
 
 pub struct Context {
     pub db_pool: Pool<Sqlite>,
 }
 impl Context {
     pub async fn get() -> Result<Context> {
-        let context = Self { db_pool: get_db().await? };
+        let context = Self {
+            db_pool: get_db().await?,
+        };
 
         Ok(context)
     }

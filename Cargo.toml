@@ -4,19 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "cli"
+name = "prediction_market_event_cli"
 path = "src/cli/bin/main.rs"
 required-features = ["cli_bin"]
 
 [features]
 default = []
-cli = ["dep:clap", "dep:serde", "dep:serde_json", "dep:home", "dep:sqlx"]
+cli = ["dep:clap", "dep:serde", "dep:serde_json", "dep:home", "dep:sqlx", "dep:chrono"]
 cli_bin = ["cli", "dep:tokio"]
 
 [dependencies]
 anyhow = "1.0.89"
 nostr-sdk = "0.35.0"
-prediction-market-event = { git = "https://github.com/Prediction-Market-Event/prediction-market-event" }
+prediction-market-event = "0.14.0"
 
 # cli dependencies
 clap = { version = "4.5.18", optional = true, features = ["derive"] }
@@ -24,4 +24,8 @@ tokio = { version = "1.40.0", optional = true }
 serde = { version = "1.0.210", optional = true }
 serde_json = { version = "1.0.128", optional = true }
 home = { version = "0.5.9", optional = true }
-sqlx = { version = "0.8.2", optional = true, features = ["sqlite", "runtime-tokio"] }
+sqlx = { version = "0.8.2", optional = true, features = [
+    "sqlite",
+    "runtime-tokio",
+] }
+chrono = { version = "0.4.38", optional = true }

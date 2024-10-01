@@ -76,7 +76,7 @@ macro_rules! impl_table {
                     ",
                     Self::SQL_TABLE_NAME
                 );
-        
+
                 let rows = sqlx::query(&raw).fetch_all(&context.db_pool).await?;
                 let mut v = Vec::new();
                 for row in rows {
@@ -84,7 +84,7 @@ macro_rules! impl_table {
                     let value = serde_json::from_str(row.get(1))?;
                     v.push((key, value));
                 }
-        
+
                 Ok(v)
             }
 
@@ -115,9 +115,7 @@ macro_rules! impl_table {
                     Self::SQL_TABLE_NAME
                 );
 
-                sqlx::query(&raw)
-                    .execute(&context.db_pool)
-                    .await?;
+                sqlx::query(&raw).execute(&context.db_pool).await?;
 
                 Ok(())
             }

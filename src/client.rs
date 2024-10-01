@@ -1,10 +1,8 @@
 use std::{collections::HashSet, time::Duration};
 
 use anyhow::Result;
-use nostr_sdk::{EventSource, Filter, Keys, Url};
-use prediction_market_event::
-    nostr_event_types::NostrEventUtils
-;
+use nostr_sdk::{Filter, Keys, Url};
+use prediction_market_event::nostr_event_types::NostrEventUtils;
 
 pub struct Client {
     keys: Keys,
@@ -13,7 +11,7 @@ pub struct Client {
 
 impl Client {
     pub async fn new_initialized_client(keys: Keys, relays: Vec<Url>) -> Result<Self> {
-        let nostr_client = nostr_sdk::Client::default();
+       let nostr_client = nostr_sdk::Client::default();
         for relay in relays {
             nostr_client.add_relay(relay).await?;
         }
@@ -36,32 +34,35 @@ impl Client {
         Ok(output.success)
     }
 
-    pub async fn get<
-        PredictionMarketEventNostrEventType,
-    >(
+    pub async fn get<PredictionMarketEventNostrEventType>(
         &self,
-        filter_fn: impl FnOnce(Filter) -> Filter,
+        filter_fn: impl FnOnce(Filter) -> Vec<Filter>,
         request_timeout: Option<Duration>,
-    ) -> Result<HashSet<PredictionMarketEventNostrEventType::InterpretResult>>
+    ) -> Result<
+        Vec<(
+            nostr_sdk::Event,
+            PredictionMarketEventNostrEventType::InterpretResult,
+        )>,
+    >
     where
         PredictionMarketEventNostrEventType: NostrEventUtils,
     {
-        let filter = filter_fn(PredictionMarketEventNostrEventType::filter());
+        let filters = filter_fn(PredictionMarketEventNostrEventType::filter());
 
         let nostr_event_vec = self
             .nostr_client
-            .get_events_of(vec![filter], EventSource::both(request_timeout))
+            .get_events_of(filters, nostr_sdk::EventSource::both(request_timeout))
             .await?;
 
-        let mut interpret_hash_set = HashSet::new();
+        let mut interpret_vec = Vec::new();
         for nostr_event in nostr_event_vec {
             if let Ok(interpret_result) =
                 PredictionMarketEventNostrEventType::interpret_nostr_event(&nostr_event)
             {
-                interpret_hash_set.insert(interpret_result);
+                interpret_vec.push((nostr_event, interpret_result));
             }
         }
 
-        Ok(interpret_hash_set)
+        Ok(interpret_vec)
     }
 }
