@@ -4,7 +4,7 @@ use db::get_db;
 use parser::Cli;
 use sqlx::{Pool, Sqlite};
 
-use crate::Client;
+use crate::{client::Signer, Client};
 
 pub mod db;
 pub mod parser;
@@ -22,11 +22,11 @@ impl Context {
         Ok(context)
     }
 
-    pub async fn client(&self) -> Result<Client> {
-        let keys = db::NostrSecretKey::get_keys(self).await?;
+    pub async fn client(&self) -> Result<Client<Signer>> {
         let relays = db::NostrRelays::get_all_urls(self).await?;
+        let keys = db::NostrSecretKey::get_keys(self).await?;
 
-        Client::new_initialized_client(keys, relays).await
+        Client::new_initialized_client_signer(relays, keys).await
     }
 }
 
